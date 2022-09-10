@@ -25,6 +25,14 @@ let persons = [
     }
 ]
 
+app.use(express.json())
+
+const generateID = () => {
+    const randomID = Math.floor(Math.random() * 100000)
+    return randomID
+}
+
+
 const PORT = 3001
 app.listen(PORT, () => {
     console.log(`Server Running on port ${PORT}`)
@@ -60,4 +68,18 @@ app.delete('/api/persons/:id', (req, res) => {
     console.log(persons)
 
     res.status(204).end()
+})
+
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body
+    const person = {
+        "id": generateID(),
+        "name": body.name,
+        "number": body.number
+    }
+
+    persons = persons.concat(person)
+
+    res.json(person)
 })
