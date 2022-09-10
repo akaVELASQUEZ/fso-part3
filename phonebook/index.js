@@ -27,7 +27,21 @@ let persons = [
 ]
 
 app.use(express.json())
-app.use(morgan())
+
+app.use(morgan(function (tokens, req, res) {
+    const jsonBody = JSON.stringify(req.body)
+    console.log(req)
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms',
+      jsonBody,
+
+    ].join(' ')
+  })
+)
 
 const generateID = () => {
     const randomID = Math.floor(Math.random() * 100000)
@@ -53,8 +67,7 @@ app.get('/info', (req, res) => {
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const person = persons.find(p => p.id === id)
-    console.log(person)
-
+    
     if (person) {
         res.json(person)
     }
