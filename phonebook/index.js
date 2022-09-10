@@ -73,13 +73,29 @@ app.delete('/api/persons/:id', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
     const body = req.body
+    
     const person = {
         "id": generateID(),
         "name": body.name,
         "number": body.number
     }
 
-    persons = persons.concat(person)
+    const nameCheck = persons.find(p => p.name === body.name)
 
-    res.json(person)
+    if (body.name && body.number) {
+        if (nameCheck) {
+            res.status(404).json({
+                error: "Name already exists"
+            })
+        }
+        else {
+            persons = persons.concat(person)
+            res.json(person)
+        }
+    }
+    else {
+        res.status(404).json({
+            error: "Please fill all the fields"
+        })
+    }
 })
