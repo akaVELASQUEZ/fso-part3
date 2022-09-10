@@ -1,6 +1,7 @@
-const e = require('express')
 const express = require('express')
 const app = express()
+var morgan = require('morgan')
+
 
 let persons = [
     { 
@@ -26,6 +27,7 @@ let persons = [
 ]
 
 app.use(express.json())
+app.use(morgan())
 
 const generateID = () => {
     const randomID = Math.floor(Math.random() * 100000)
