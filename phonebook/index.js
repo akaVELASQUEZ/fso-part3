@@ -46,12 +46,18 @@ app.get('/api/persons/:id', (req, res) => {
     console.log(person)
 
     if (person) {
-        console.log(1)
         res.json(person)
     }
     else {
-        console.log(2)
         res.status(404).end()
     }
-    
+})
+
+
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    persons = persons.filter(p => p.id !== id)
+    console.log(persons)
+
+    res.status(204).end()
 })
