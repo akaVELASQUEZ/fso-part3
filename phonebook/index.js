@@ -3,6 +3,7 @@ const app = express()
 var morgan = require('morgan')
 const cors = require('cors')
 
+app.use(express.static('build'))
 app.use(cors())
 
 let persons = [
@@ -51,7 +52,7 @@ const generateID = () => {
 }
 
 
-const PORT = 3001
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
     console.log(`Server Running on port ${PORT}`)
 })
