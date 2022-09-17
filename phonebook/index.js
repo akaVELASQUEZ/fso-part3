@@ -28,11 +28,6 @@ app.use(morgan(function (tokens, req, res) {
   })
 )
 
-// const generateID = () => {
-//     const randomID = Math.floor(Math.random() * 100000)
-//     return randomID
-// }
-
 const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server Running on port ${PORT}`)
@@ -45,45 +40,54 @@ app.get('/api/persons', (req, res) => {
 })
 
 app.get('/info', (req, res) => {
-    res.send(`Phonebook has info for ${persons.length} people
-    <br/>
-    ${Date()}`)
+    Person.count((err, count) => {
+        res.send(`Phonebook has info for ${count} people
+        <br/>
+        ${Date()}`)
+    })
 })
-
-app.get('/api/persons/:id', (req, res) => {
-    Person.findById(req.params.id)
-        .then(person =>{
-            res.json(person)
-        })
-
-    // const id = Number(req.params.id)
-    // const person = persons.find(p => p.id === id)
     
-    // if (person) {
-    //     res.json(person)
-    // }
-    // else {
-    //     res.status(404).end()
-    // }
+
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.findById(req.params.id)
+        .then(person => {
+            if (person) {
+                res.json(person)
+            }
+            else {
+                res.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(p => p.id !== id)
-    console.log(persons)
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndRemove(req.params.id)
+    .then(result => {
+        res.status(204).end()
+    })
+    .catch(error => next(error))
+})
 
-    res.status(204).end()
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+  
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+  
+    Person.findByIdAndUpdate(req.params.id, person, { new: true })
+      .then(updatedPerson => {
+        res.json(updatedPerson)
+      })
+      .catch(error => next(error))
 })
 
 
 app.post('/api/persons', (req, res) => {
     const body = req.body
-    
-    // if (body.content === undefined) {
-    //     return res.status(400).json({ error: 'content missing' })
-    // }
-
     const person = new Person({
         "name": body.name,
         "number": body.number
@@ -91,24 +95,17 @@ app.post('/api/persons', (req, res) => {
 
     person.save().then(savedPerson => {
         res.json(savedPerson)
-    })
-
-    // const nameCheck = persons.find(p => p.name === body.name)
-
-    // if (body.name && body.number) {
-    //     if (nameCheck) {
-    //         res.status(404).json({
-    //             error: "Name already exists"
-    //         })
-    //     }
-    //     else {
-    //         persons = persons.concat(person)
-    //         res.json(person)
-    //     }
-    // }
-    // else {
-    //     res.status(404).json({
-    //         error: "Please fill all the fields"
-    //     })
-    // }        
+    })     
 })
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
+  
+    next(error)
+}
+
+app.use(errorHandler)
